@@ -1,0 +1,191 @@
+<!-- Declaration that we are using HTML5 -->
+<!DOCTYPE html>
+<!-- Declares that we are using the English language -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Registration Form</title>
+    <style>
+        body {
+            font-family: Calibri, sans-serif;  /* Calibri font */
+            font-size: 11px;                   /* Text size 11 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;                     /* Vertically and horizontally center the form */
+            background-color: #f0f0f0;         /* Optional background for the whole page */
+            margin: 0;
+        }
+
+        form {
+            background-color: #89c82e;         /* Green background for the form */
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;                      /* Form width */
+            text-align: left;                  /* Align the text to the left */
+        }
+
+        label {
+            color: #3c3c3b;                    /* Grey text for labels */
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            padding: 8px;
+            width: 100%;                       /* Input fields take full width of form */
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;             /* Ensures padding is inside the width */
+        }
+
+        .error {
+            color: #e70064;                    /* Pink error text */
+        }
+
+        input[type="submit"] {
+            background-color: #e70064;         /* Pink submit button */
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            width: 100%;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #d10058;         /* Darker pink on hover */
+        }
+
+        h2 {
+            text-align: center;                /* Center heading text */
+            color: white;
+        }
+
+    </style>
+    <!-- The code above ensures the entire page uses Calibri font, with text size 11, and matches the specified colours for green, grey, and pink -->
+</head>
+
+<!-- Indicates where the main content of the page is -->
+<body>
+    <form id="bookingForm">
+        <h2>Course Booking Form</h2>
+
+        <!-- Name input field with validation triggered by onBlur -->
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" placeholder="Enter Your Name" required onblur="validateName()">
+        <span id="nameError" class="error"></span>
+
+        <!-- Email input field, which will be validated by the browser for proper format -->
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" placeholder="Enter Your Email" required>
+        <span id="emailError" class="error"></span>
+
+        <!-- Credit card input field, requiring exactly 16 digits and validation triggered by onBlur -->
+        <label for="creditCard">Card:</label>
+        <input type="text" id="creditCard" name="creditCard" placeholder="Enter a Proxy Credit Card Number" required onblur="validateCreditCard()">
+        <span id="cardError" class="error"></span>
+
+        <!-- Creates a submit button that submits the form. It triggers the form validation and JavaScript. -->
+        <input type="submit" value="Submit">
+    </form>
+
+    <script>
+        // Validate Name field (User Story 1)
+        // Ensures the name contains both a given and family name with at least two characters each
+        // Disallows names like "John", "J Doe", or names with invalid characters like "@"
+        function validateName() {
+            const nameField = document.getElementById('name');
+            const nameValue = nameField.value.trim();
+            const nameParts = nameValue.split(' ');
+            const namePattern = /^[a-zA-Z!#$%&'*+\-/=?^_`{|}~ ]+$/;  // Allowed characters
+
+            document.getElementById('nameError').textContent = ''; // Clear any previous errors
+            nameField.style.borderColor = '';  // Reset border color
+
+            // Validate if the name contains at least two parts (Given and Family Name) and is not too short
+            if (!namePattern.test(nameValue) || nameParts.length < 2 || nameParts[0].length < 2 || nameParts[1].length < 2) {
+                document.getElementById('nameError').textContent = "Invalid name. Must contain both given and family name.";
+                nameField.style.borderColor = 'pink';  // Highlights the name field in pink if invalid
+                return false;
+            }
+            return true;
+        }
+
+        // Validate Credit Card field using LUHN algorithm (User Story 3)
+        // Ensures the credit card number is 16 digits, numeric, and passes the LUHN check
+        function validateCreditCard() {
+            const cardField = document.getElementById('creditCard');
+            const cardValue = cardField.value.trim();
+            const cardPattern = /^[0-9]{16}$/;  // Only allows 16 digits
+
+            document.getElementById('cardError').textContent = '';  // Clear any previous errors
+            cardField.style.borderColor = '';  // Reset border color
+
+            // Check if card number is numeric and 16 digits long
+            if (!cardPattern.test(cardValue)) {
+                document.getElementById('cardError').textContent = "Invalid credit card number. Must be 16 digits.";
+                cardField.style.borderColor = 'pink';  // Highlights the card field in pink if invalid
+                return false;
+            }
+
+            // LUHN Algorithm for credit card validation (checks for valid card numbers)
+            let sum = 0;
+            let shouldDouble = false;
+
+            for (let i = cardValue.length - 1; i >= 0; i--) {
+                let digit = parseInt(cardValue[i]);
+
+                if (shouldDouble) {
+                    digit *= 2;
+                    if (digit > 9) {
+                        digit -= 9;
+                    }
+                }
+
+                sum += digit;
+                shouldDouble = !shouldDouble;
+            }
+
+            // Card is invalid if it doesn't pass the LUHN check or if it's all zeros (0000000000000000)
+            if (sum % 10 !== 0 || cardValue === "0000000000000000") {
+                document.getElementById('cardError').textContent = "Invalid credit card number.";
+                cardField.style.borderColor = 'pink';
+                return false;
+            }
+            return true;
+        }
+
+        // Validate the form before submission (including email validation)
+        // Ensures all fields are validated and displays errors if necessary
+        document.getElementById('bookingForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent form submission until validation passes
+
+            const nameValid = validateName();  // Validate the name field
+            const emailField = document.getElementById('email');
+            const cardValid = validateCreditCard();  // Validate the credit card field
+
+            // Validate email field (User Story 2)
+            // Checks for proper email format (e.g., test@abc.com)
+            if (emailField.validity.typeMismatch || !emailField.value.includes('@')) {
+                document.getElementById('emailError').textContent = "Invalid email address.";
+                emailField.style.borderColor = 'pink';  // Highlights the email field in pink if invalid
+                return;
+            } else {
+                document.getElementById('emailError').textContent = '';  // Clear previous errors
+                emailField.style.borderColor = '';  // Reset border color
+            }
+
+            // If all fields are valid, submit the form
+            if (nameValid && cardValid && !emailField.validity.typeMismatch) {
+                alert("Form is valid! Proceeding...");
+                document.getElementById('bookingForm').submit();  // Submits the form if all validations pass
+            }
+        });
+
+    </script>
+
+</body>
+</html>
